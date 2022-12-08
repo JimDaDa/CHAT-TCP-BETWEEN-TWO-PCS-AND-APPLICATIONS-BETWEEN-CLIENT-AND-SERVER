@@ -1,0 +1,175 @@
+package Component;
+
+
+import Client.MessageType;
+import Client.Service;
+import Client.User_Account;
+import Events.PublicEvent;
+import Swing.JIMSendTextPane;
+import Swing.ScrollBar;
+import Client.Send_Message;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
+import net.miginfocom.swing.MigLayout;
+
+/**
+ *
+ * @author HOAI THU
+ */
+public class ChatBottom extends javax.swing.JPanel {
+    
+    private MigLayout mig;
+    private MoreOptions panelMore;
+
+    public User_Account getUser() {
+        return user;
+    }
+
+    public void setUser(User_Account user) {
+        this.user = user;
+    }
+
+    private User_Account user;
+    
+    public ChatBottom() {
+        initComponents();
+        init ();
+    }
+    
+    public void init() {
+        mig = new MigLayout("fillx, filly", "0[fill]0[]0[]2", "2[fill]2");
+        //setLayout(new MigLayout("fillx, filly", "0[]0[]0[]0", ""));
+        setLayout(mig);
+        JScrollPane sp = new JScrollPane();
+        sp.setBorder(null);
+        
+        JIMSendTextPane text = new JIMSendTextPane();
+        text.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent ke) {
+                refresh();
+                if (ke.getKeyChar() == 10 && ke.isControlDown()) {
+                    //  user press controll + enter
+                    eventSend(text);
+                }
+            }
+        });
+        text.setBorder(new EmptyBorder(5, 5, 5, 5));
+        text.setHint("Nhập tin nhắn ...");
+        text.setFont(new Font("Cambria", 0, 12));
+        sp.setViewportView(text);
+        ScrollBar sb = new ScrollBar();
+        sb.setPreferredSize(new Dimension(2,10));
+        sp.setVerticalScrollBar(sb);
+        add(sb);
+        add(sp, "w 100%");
+        
+        JPanel panel = new JPanel();
+        panel.setLayout(new MigLayout("filly", "0[]3[]0", "0[bottom]5"));
+        panel.setPreferredSize(new Dimension(30,28));
+        panel.setBackground(Color.WHITE);
+        JButton send = new JButton();
+        send.setBorder(null);
+        send.setBackground(new Color(213,229,232));
+        send.setContentAreaFilled(false);
+        send.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        send.setIcon(new ImageIcon(getClass().getResource("/Icons/IconSend.png")));
+        send.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eventSend(text);
+            }
+            
+        });
+        
+        JButton more = new JButton();
+        more.setBorder(null);
+        more.setContentAreaFilled(false);
+        more.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        more.setIcon(new ImageIcon(getClass().getResource("/Icons/IconMore.png")));
+        more.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (panelMore.isVisible()) {
+                    more.setIcon(new ImageIcon(getClass().getResource("/Icons/IconMore.png")));
+                    panelMore.setVisible(false);
+                    mig.setComponentConstraints(panelMore, "dock south,h 0!");
+                    revalidate();
+                } else {
+                    more.setIcon(new ImageIcon(getClass().getResource("/Icons/IconMore2.png")));
+                    panelMore.setVisible(true);
+                    mig.setComponentConstraints(panelMore, "dock south,h 170!");
+                    revalidate();
+                }
+            }
+            
+        });
+        panel.add(more);
+        panel.add(send);
+        add(panel, "wrap");
+        panelMore = new MoreOptions();
+        panelMore.setVisible(false);
+        add(panelMore, "dock south,h 0!");
+    }
+
+    private void eventSend(JIMSendTextPane txt) {
+        String text = txt.getText().trim();
+        if (!text.equals("")) {
+            Send_Message message = new Send_Message(MessageType.TEXT, Service.getInstance().getUser().getID(), user.getID(), text);
+            send(message);
+            PublicEvent.getInstance().getChatEvent().sendMsg(message);
+            txt.setText("");
+            txt.grabFocus();
+            refresh();
+        } else {
+            txt.grabFocus();
+        }
+    }
+    
+     private void send(Send_Message data) {
+        Service.getInstance().getClient().emit("send_to_user", data.toJsonObject());
+    }
+    
+    public void refresh() {
+        revalidate();
+    }
+    
+    
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        setBackground(new java.awt.Color(213, 229, 232));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 41, Short.MAX_VALUE)
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
+}
